@@ -9,14 +9,15 @@ class CertificatePinningInterceptor extends Interceptor {
   final List<String> _allowedSHAFingerprints;
   final int _timeout;
   final Set<String> verifiedURLs = {};
+  final bool checkEveryTime;
   Future<String>? secure = Future.value('');
 
   CertificatePinningInterceptor({
     List<String>? allowedSHAFingerprints,
     int timeout = 0,
-  })  : _allowedSHAFingerprints = allowedSHAFingerprints != null
-            ? allowedSHAFingerprints
-            : <String>[],
+    required this.checkEveryTime,
+  })  : _allowedSHAFingerprints =
+            allowedSHAFingerprints != null ? allowedSHAFingerprints : <String>[],
         _timeout = timeout;
 
   @override
@@ -26,7 +27,7 @@ class CertificatePinningInterceptor extends Interceptor {
   ) async {
     try {
       // skip verification if already verified, performance
-      if (verifiedURLs.contains(options.baseUrl)) {
+      if (verifiedURLs.contains(options.baseUrl) && !checkEveryTime) {
         return super.onRequest(options, handler);
       }
       // iOS bug: Alamofire is failing to return parallel requests for certificate validation
